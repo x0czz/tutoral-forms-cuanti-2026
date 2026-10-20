@@ -1,0 +1,391 @@
+---
+title: "Cómo crear una encuesta en Google Forms"
+subtitle: "Codificación, niveles de medición, preguntas filtro y descarga de la base de datos"
+author: "Nicolás Outerbridge"
+date: today
+lang: es
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    toc-title: "Contenido"
+    number-sections: true
+    embed-resources: true
+    theme: cosmo
+    fig-align: center
+    code-fold: false
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{=html}
+<style>
+figure img, .figure img { max-width: 520px; border: 1px solid #ddd; border-radius: 6px; }
+.small-fig img { max-width: 380px; }
+</style>
+```
+
+# ¿Qué vamos a hacer?
+
+En este tutorial construimos, paso a paso, una encuesta real en Google Forms y terminamos con una base de datos lista para analizar. Al final deberías saber:
+
+1. **Crear** un formulario y elegir el **tipo de pregunta** correcto según el **nivel de medición** de la variable.
+2. **Codificar** las preguntas: armar un libro de códigos antes de recoger datos.
+3. Hacer preguntas **obligatorias** y **validar** respuestas (por ejemplo, que la edad sea un número).
+4. Crear **preguntas filtro**: que una respuesta decida qué preguntas ve cada persona.
+5. **Publicar**, probar y **descargar la base de datos**, y pasarla a una base codificada en R.
+
+Todas las capturas vienen de un formulario de ejemplo, la *Encuesta de hábitos de estudio*, con estas preguntas:
+
+| N.º | Pregunta | Tipo en Forms | Nivel de medición |
+|:---|:---|:---|:---|
+| P1 | ¿Cuántos años cumplidos tienes? | Respuesta corta + validación numérica | Razón |
+| P2 | ¿En qué tipo de establecimiento terminaste la enseñanza media? | Varias opciones | Nominal |
+| P3 | ¿Qué recursos usas para estudiar? (puedes marcar más de una) | Casillas | Nominal (respuesta múltiple) |
+| P4 | ¿Cuál es el nivel educacional más alto que completó tu madre? | Desplegable | Ordinal |
+| P5 | ¿Qué tan satisfecho/a estás con tu rendimiento académico? | Escala lineal 1–5 | Ordinal |
+| P6 | ¿Trabajas actualmente de forma remunerada? | Varias opciones (**filtro**) | Nominal (dicotómica) |
+| P7 | ¿Cuántas horas trabajas en una semana normal? *(solo si P6 = Sí)* | Respuesta corta + validación numérica | Razón |
+| P8 | ¿Quieres agregar algún comentario? | Párrafo | Texto abierto |
+
+: Preguntas del formulario de ejemplo {#tbl-preguntas}
+
+# Crear el formulario
+
+## Paso 1: abrir Google Forms
+
+Entra a [forms.google.com](https://forms.google.com) con tu cuenta (la institucional `@uchile.cl` funciona igual) y haz clic en **Formulario en blanco**.
+
+![Pantalla de inicio de Google Forms. "Formulario en blanco" crea uno nuevo.](img/01_inicio.png){#fig-inicio}
+
+## Paso 2: conocer el editor
+
+El formulario nuevo trae una primera pregunta. Hay tres controles que usarás todo el tiempo:
+
+1. El **menú de tipo de pregunta**, que por defecto dice *Varias opciones*.
+2. El interruptor **Obligatorio**.
+3. La **barra inferior**. Desde la izquierda: añadir pregunta (⊕), importar preguntas, añadir título y descripción (Tт), imagen, video y **añadir sección** (el último ícono).
+
+![El editor recién creado.](img/02_formulario_blanco.png){#fig-editor}
+
+## Paso 3: título y descripción
+
+Haz clic en *Formulario sin título* y escribe el nombre de la encuesta. En la descripción explica a quién va dirigida, cuánto demora y cómo se usarán los datos (consentimiento informado).
+
+![Título y descripción del formulario.](img/03_titulo.png){#fig-titulo}
+
+::: {.callout-tip}
+## Numera las preguntas en el texto
+Escribe el código de la pregunta al inicio del enunciado (**P1.**, **P2.**…). Ese número pasa al encabezado de la columna en la base descargada y facilita mucho la codificación posterior.
+:::
+
+# Tipos de pregunta y niveles de medición
+
+## Repaso: los cuatro niveles de medición
+
+| Nivel | ¿Qué permite? | Ejemplos |
+|:---|:---|:---|
+| **Nominal** | Clasificar en categorías sin orden | Tipo de establecimiento, comuna, sexo, trabaja sí/no |
+| **Ordinal** | Clasificar **y ordenar**, pero las distancias no son iguales | Nivel educacional, grado de acuerdo (Likert), satisfacción |
+| **Intervalo** | Ordenar con distancias iguales; el cero es arbitrario | Temperatura en °C, año de nacimiento, fecha |
+| **Razón** | Distancias iguales **y cero absoluto** (el 0 es ausencia) | Edad en años, horas trabajadas, ingreso, n.º de hijos |
+
+: Niveles de medición {#tbl-niveles}
+
+## ¿Qué tipo de pregunta corresponde a cada nivel?
+
+Al hacer clic en el menú de tipo de pregunta aparecen todas las opciones:
+
+![Menú de tipos de pregunta.](img/04_tipos_pregunta.png){#fig-tipos}
+
+| Tipo en Forms | Nivel que suele medir | Ejemplo | Ojo con… |
+|:---|:---|:---|:---|
+| **Respuesta corta** | Intervalo o razón (si validas que sea número) | Edad, horas, ingreso | Sin validación la gente escribe "veinte", "20 años", "20,5". **Siempre** agrega validación numérica. |
+| **Párrafo** | No es una variable cuantitativa | Comentarios, "¿por qué?" | Requiere codificación cualitativa posterior. |
+| **Varias opciones** | Nominal; ordinal si las categorías tienen orden | Tipo de establecimiento; sí/no | Una sola respuesta. Las categorías deben ser **exhaustivas** (agrega "Otro") y **excluyentes**. |
+| **Casillas** | Nominal de **respuesta múltiple** | Recursos de estudio, redes sociales que usa | Cada opción se convierte en una variable 0/1 (ver @sec-multiple). |
+| **Desplegable** | Nominal u ordinal | Región, comuna, nivel educacional | Útil con listas largas; el encuestado no ve todas las opciones de una vez. |
+| **Escala lineal** | Ordinal (tipo Likert) | Satisfacción 1–5, acuerdo 1–7 | Etiqueta los extremos. A veces se analiza como intervalo, pero eso es una decisión que hay que justificar. |
+| **Calificación** (estrellas) | Ordinal | Evaluación de un servicio | Igual que la escala lineal. |
+| **Cuadrícula de varias opciones** | Batería de ítems ordinales | Escala de acuerdo con 5 afirmaciones | Cada **fila** es una variable. |
+| **Cuadrícula de casillas** | Respuesta múltiple por fila | Días de la semana en que hace cada actividad | Difícil de analizar; úsala poco. |
+| **Fecha / Hora** | Intervalo | Fecha de nacimiento | Para la edad, mejor pedirla directo en años (razón). |
+| **Subir archivos** | — | — | Exige iniciar sesión en Google; evítala en encuestas. |
+
+: Correspondencia entre tipos de pregunta y niveles de medición {#tbl-tipos}
+
+::: {.callout-important}
+## El nivel de medición lo define la variable, no el botón
+"Varias opciones" puede medir una variable nominal (P2: tipo de establecimiento) o una ordinal (por ejemplo, "Nunca / A veces / Siempre"). Lo que importa es si las categorías **tienen un orden**. Regla práctica: **mide al nivel más alto posible**. Si preguntas la edad exacta (razón), después puedes agruparla en tramos (ordinal); al revés no se puede.
+:::
+
+## Ejemplos del formulario
+
+**Nominal, una respuesta (P2).** Tipo *Varias opciones*, con "Otro" activado para que las categorías sean exhaustivas (1). Es obligatoria (2).
+
+![P2: pregunta nominal con varias opciones.](img/07_nominal.png){#fig-nominal}
+
+**Nominal de respuesta múltiple (P3).** Tipo *Casillas* (1); la persona puede marcar varias opciones (2).
+
+![P3: respuesta múltiple con casillas.](img/08_casillas.png){#fig-casillas}
+
+**Ordinal (P4).** Tipo *Desplegable* (1). Las opciones se escriben **de menor a mayor** (2), porque ese orden será el código.
+
+![P4: pregunta ordinal en desplegable.](img/09_desplegable.png){#fig-desplegable}
+
+**Ordinal tipo Likert (P5).** Tipo *Escala lineal* (1); se elige el rango, aquí de 1 a 5 (2), y se etiquetan los extremos (3).
+
+![P5: escala lineal de 1 a 5.](img/10_escala_lineal.png){#fig-escala}
+
+# Codificar las preguntas
+
+**Codificar** es asignar a cada respuesta un valor (normalmente un número) y a cada pregunta un nombre de variable. Se hace **antes** de aplicar la encuesta, en un **libro de códigos**.
+
+## Por qué importa en Google Forms
+
+Google Forms **no guarda códigos numéricos**: en la base descargada aparece el **texto** de la opción ("Particular subvencionado"), no un "2". Por eso el libro de códigos es indispensable. Es la "traducción" que usarás después para recodificar en R, Stata, SPSS o Excel. La única excepción es la escala lineal, que ya se exporta como número.
+
+## Libro de códigos del ejemplo
+
+| Variable | Pregunta | Nivel | Códigos |
+|:---|:---|:---|:---|
+| `edad` | P1 | Razón | Valor en años (15–99) |
+| `dependencia` | P2 | Nominal | 1 = Municipal · 2 = Particular subvencionado · 3 = Particular pagado · 4 = SLEP · 96 = Otro (texto en `dependencia_otro`) |
+| `rec_apuntes` … `rec_ia` | P3 | Nominal (dicotómicas) | 1 = marcó la opción · 0 = no la marcó |
+| `educ_madre` | P4 | Ordinal | 1 = Básica incompleta o menos · 2 = Básica completa · 3 = Media completa · 4 = Técnica o universitaria completa · 5 = Postgrado |
+| `satisfaccion` | P5 | Ordinal | 1 = Muy insatisfecho/a … 5 = Muy satisfecho/a |
+| `trabaja` | P6 | Nominal | 1 = Sí · 0 = No |
+| `horas_trabajo` | P7 | Razón | Horas semanales |
+| `comentario` | P8 | Texto | Texto libre |
+| *(todas)* | — | — | **-99 = No responde** · **-88 = No aplica** (no le correspondía por el filtro) |
+
+: Libro de códigos {#tbl-codigos}
+
+::: {.callout-note}
+## Buenas prácticas de codificación
+- **El orden de las opciones = el orden de los códigos.** En preguntas ordinales escribe siempre de menor a mayor y **no** actives "Ordenar las opciones aleatoriamente".
+- **Códigos reservados** para "Otro" (96), "No sabe" (98), "No responde" (-99) y "No aplica" (-88). Usa siempre los mismos en toda la encuesta.
+- **Distingue "no respondió" de "no le correspondía".** En el ejemplo, quien no trabaja no ve P7. Su celda queda vacía, pero no es un dato perdido: es un *no aplica* (-88).
+- **Nombres de variable cortos**, sin tildes ni espacios: `educ_madre`, no "Nivel educacional de la madre".
+:::
+
+## Preguntas de respuesta múltiple {#sec-multiple}
+
+Una pregunta de *Casillas* no cabe en una sola variable. Se codifica como **una variable dicotómica por opción** (0/1):
+
+| Persona | P3 en la base de Forms | `rec_apuntes` | `rec_libros` | `rec_videos` | `rec_grupos` | `rec_ia` |
+|:---|:---|:---|:---|:---|:---|:---|
+| 1 | Apuntes propios;Videos en internet | 1 | 0 | 1 | 0 | 0 |
+| 2 | Libros…;Grupos de estudio;Herramientas de IA | 0 | 1 | 0 | 1 | 1 |
+
+Forms junta todas las opciones marcadas en una sola celda, separadas por **punto y coma**.
+
+# Preguntas obligatorias y validación
+
+## Hacer obligatoria una pregunta
+
+Activa el interruptor **Obligatorio** (1). La pregunta queda marcada con un asterisco rojo y el formulario no avanza si está vacía. Desde los tres puntos (⋮) se abre **Validación de respuestas** (2).
+
+![Interruptor "Obligatorio" y menú de validación.](img/05_obligatorio_menu.png){#fig-obligatorio}
+
+## Validar el formato de la respuesta
+
+En P1 (edad) se eligió **Número → Entre → 15 y 99**, con un mensaje de error personalizado:
+
+![Validación numérica de la edad.](img/06_validacion.png){#fig-validacion}
+
+Así ve el encuestado el error si escribe la edad en palabras:
+
+![El formulario rechaza "veinte" y muestra el mensaje personalizado.](img/16_error_validacion.png){#fig-error}
+
+::: {.callout-warning}
+## ¿Todo obligatorio?
+Hacer todas las preguntas obligatorias no es mejor. Las preguntas sensibles (ingresos, salud, temas personales) conviene dejarlas opcionales o agregarles la opción "Prefiero no responder"; si no, la persona abandona la encuesta o responde cualquier cosa. Sí deben ser obligatorias **las preguntas filtro**, porque de ellas depende el recorrido.
+:::
+
+# Preguntas filtro: una respuesta decide qué preguntas siguen
+
+Una **pregunta filtro** envía a cada persona a una parte distinta del formulario según lo que responda. En el ejemplo, solo quien **trabaja** debe responder cuántas horas trabaja:
+
+```{mermaid}
+%%| fig-align: center
+flowchart LR
+  S1["Sección 1<br/>P1–P6"] -->|P6 = Sí| S2["Sección 2: Trabajo<br/>P7 horas"]
+  S1 -->|P6 = No| S3["Sección 3: Cierre<br/>P8"]
+  S2 --> S3
+```
+
+En Google Forms esto se hace con **secciones**. Son tres pasos:
+
+## Paso 1: dividir el formulario en secciones
+
+Pon la pregunta filtro (P6) al **final** de una sección. Luego usa el botón **Añadir sección** de la barra inferior (el último ícono) para crear la sección 2 (*Trabajo*, con P7) y la sección 3 (*Cierre*, con P8).
+
+## Paso 2: activar "Ir a la sección según la respuesta"
+
+En la pregunta filtro, abre los tres puntos (⋮) y elige **Ir a la sección según la respuesta**. Solo existe en preguntas de *Varias opciones* y *Desplegable*.
+
+::: {.small-fig}
+![Opción "Ir a la sección según la respuesta".](img/11_menu_ir_seccion.png){#fig-ir-seccion}
+:::
+
+## Paso 3: elegir el destino de cada opción
+
+Junto a cada respuesta aparece un menú con los destinos posibles:
+
+![Destinos disponibles para la opción "No".](img/12_destinos_seccion.png){#fig-destinos}
+
+En el ejemplo, **Sí → Ir a la siguiente sección** (sección 2) y **No → Ir a la sección 3** (1). Revisa también el recuadro **Después de la sección…** (2), que define adónde va la gente al terminar cada sección cuando no hay filtro.
+
+![Filtro configurado en P6.](img/13_filtro_configurado.png){#fig-filtro}
+
+## Resultado
+
+Quien responde **Sí** llega a la sección 2 y ve la pregunta de horas:
+
+![P6 = Sí: el formulario muestra la sección 2.](img/17_salto_seccion2.png){#fig-salto2}
+
+Quien responde **No** salta directo a la sección 3:
+
+![P6 = No: el formulario salta a la sección 3.](img/19_salto_seccion3.png){#fig-salto3}
+
+::: {.callout-tip}
+## Prueba todos los caminos
+Antes de enviar la encuesta, respóndela tú una vez **por cada camino posible** (aquí: una vez con "Sí" y otra con "No"). Es la única forma de detectar saltos mal configurados.
+:::
+
+# Publicar y probar
+
+En la versión actual de Google Forms el formulario no recibe respuestas hasta que lo **publicas** con el botón de avión de papel (o "Publicar"). En el cuadro de diálogo puedes **restringir** quién responde (1), por ejemplo solo cuentas de la Universidad de Chile, y luego **Publicar** (2).
+
+![Diálogo "Publicar formulario".](img/14_publicar.png){#fig-publicar}
+
+Así ve el formulario quien responde (el asterisco indica las obligatorias):
+
+![Vista del encuestado.](img/15_vista_encuestado.png){#fig-vista}
+
+Las preguntas *Desplegable* se ven como una lista que se abre al hacer clic:
+
+![P4 vista por el encuestado.](img/18_desplegable_encuestado.png){#fig-desplegable-enc}
+
+::: {.callout-note}
+## Restringir o no
+Restringir a la institución obliga a iniciar sesión con una cuenta `@uchile.cl`. Sirve para encuestas internas, pero deja fuera a quien no la tenga. Para una muestra externa usa "Cualquier persona con el enlace". En **Configuración** puedes además limitar a una respuesta por persona o recopilar correos.
+:::
+
+# Descargar la base de datos
+
+## La pestaña Respuestas
+
+En **Respuestas** verás el número de respuestas y gráficos automáticos por pregunta. Para obtener la base hay dos caminos: **Vincular con Hojas de cálculo** (1) o el menú ⋮ (2).
+
+![Pestaña Respuestas con 4 respuestas de prueba.](img/20_respuestas_resumen.png){#fig-respuestas}
+
+## Opción A: descargar un CSV
+
+En el menú ⋮ elige **Descargar respuestas (.csv)**:
+
+![Menú con "Descargar respuestas (.csv)".](img/21_menu_descargar_csv.png){#fig-csv}
+
+::: {.callout-important}
+## Llega un .zip
+Forms descarga un archivo **.zip** que contiene el CSV. Descomprímelo antes de abrirlo en R o Excel. Si al abrirlo en Excel ves caracteres raros en las tildes, impórtalo con la codificación **UTF-8** (Datos → Desde texto/CSV).
+:::
+
+## Opción B: vincular con Google Sheets
+
+**Vincular con Hojas de cálculo** crea una planilla que se **actualiza sola** con cada respuesta nueva. Es lo más cómodo mientras la encuesta está abierta. Desde Sheets puedes descargar en *Archivo → Descargar* como .xlsx o .csv.
+
+![Diálogo para crear o elegir la hoja de cálculo de destino.](img/22_vincular_sheets.png){#fig-sheets}
+
+## Cómo viene la base
+
+Esta es la base real descargada del formulario de ejemplo:
+
+```{r}
+#| label: tbl-cruda
+#| tbl-cap: "Base tal como la entrega Google Forms"
+library(readr)
+cruda <- read_csv("datos/respuestas_ejemplo.csv", show_col_types = FALSE)
+knitr::kable(cruda)
+```
+
+Fíjate en cuatro cosas:
+
+- **Una fila por respuesta y una columna por pregunta**, más una primera columna *Marca temporal* (fecha y hora del envío).
+- Los encabezados son el **texto completo** de la pregunta. Por eso conviene numerarlas (P1, P2…).
+- Las respuestas vienen como **texto**, no como códigos. Solo la escala lineal (P5) viene como número.
+- **Celdas vacías** tanto para "no respondió" (P4 de la persona 1) como para "no le correspondía" (P7 de quienes no trabajan). Hay que distinguirlas con el libro de códigos.
+
+# De la base de Forms a una base codificada (R)
+
+El siguiente código aplica el libro de códigos de la @tbl-codigos. Puedes copiarlo y adaptarlo a tu encuesta.
+
+```{r}
+#| label: recodificar
+library(dplyr)
+
+# 1. Nombres de variable cortos (en el orden de las columnas)
+names(cruda) <- c("fecha", "edad", "dependencia_txt", "recursos_txt",
+                  "educ_madre_txt", "satisfaccion", "trabaja_txt",
+                  "horas_trabajo", "comentario")
+
+# 2. Categorías en el orden del libro de códigos
+cat_dependencia <- c("Municipal", "Particular subvencionado",
+                     "Particular pagado", "Servicio Local de Educación (SLEP)")
+cat_educ <- c("Básica incompleta o menos", "Básica completa", "Media completa",
+              "Técnica o universitaria completa", "Postgrado")
+
+base <- cruda |>
+  mutate(
+    # P2 nominal: el texto se convierte en su código; lo que no calza es "Otro" (96)
+    dependencia = match(dependencia_txt, cat_dependencia),
+    dependencia = ifelse(is.na(dependencia) & !is.na(dependencia_txt), 96, dependencia),
+    dependencia_otro = ifelse(dependencia == 96, dependencia_txt, NA),
+
+    # P3 respuesta múltiple: una variable 0/1 por opción
+    rec_apuntes = as.integer(grepl("Apuntes propios", recursos_txt, fixed = TRUE)),
+    rec_libros  = as.integer(grepl("Libros o lecturas", recursos_txt, fixed = TRUE)),
+    rec_videos  = as.integer(grepl("Videos en internet", recursos_txt, fixed = TRUE)),
+    rec_grupos  = as.integer(grepl("Grupos de estudio", recursos_txt, fixed = TRUE)),
+    rec_ia      = as.integer(grepl("Herramientas de IA", recursos_txt, fixed = TRUE)),
+
+    # P4 ordinal: el código respeta el orden; vacío = No responde (-99)
+    educ_madre = match(educ_madre_txt, cat_educ),
+    educ_madre = ifelse(is.na(educ_madre), -99, educ_madre),
+
+    # P6 dicotómica
+    trabaja = ifelse(trabaja_txt == "Sí", 1, 0),
+
+    # P7 filtrada: si no trabaja es "No aplica" (-88), no un dato perdido
+    horas_trabajo = ifelse(trabaja == 0, -88, horas_trabajo)
+  ) |>
+  select(edad, dependencia, dependencia_otro, starts_with("rec_"),
+         educ_madre, satisfaccion, trabaja, horas_trabajo, comentario)
+```
+
+```{r}
+#| label: tbl-codificada
+#| tbl-cap: "Base codificada según el libro de códigos"
+knitr::kable(base)
+```
+
+::: {.callout-warning}
+## Antes de analizar
+Los códigos -99 y -88 son **etiquetas**, no números reales. Antes de calcular promedios, conviértelos en `NA` (por ejemplo, `na_if(horas_trabajo, -88)`); si no, distorsionan los resultados. Y recuerda que el nivel de medición limita qué estadístico corresponde: moda y frecuencias para nominales; mediana y percentiles para ordinales; media y desviación estándar para intervalo y razón.
+:::
+
+# Lista de chequeo final
+
+- [ ] Cada pregunta tiene un código (P1, P2…) en su enunciado.
+- [ ] El libro de códigos está listo **antes** de publicar.
+- [ ] El tipo de pregunta corresponde al nivel de medición de cada variable.
+- [ ] Las preguntas numéricas tienen **validación**.
+- [ ] Las categorías son exhaustivas (hay "Otro" cuando hace falta) y excluyentes.
+- [ ] Las preguntas ordinales están de menor a mayor y **sin orden aleatorio**.
+- [ ] Las preguntas filtro son **obligatorias** y sus saltos están probados en todos los caminos.
+- [ ] Se revisó quién puede responder (restringido o con enlace) y si hay límite de una respuesta.
+- [ ] Se hizo una respuesta de prueba y se descargó la base para revisarla antes de difundir la encuesta.
+- [ ] Las respuestas de prueba se **eliminan** antes de abrir la encuesta (Respuestas → ⋮ → Eliminar todas las respuestas).
