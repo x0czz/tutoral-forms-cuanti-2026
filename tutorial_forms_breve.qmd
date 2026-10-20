@@ -1,7 +1,7 @@
 ---
 title: "Encuestas en Google Forms"
 subtitle: "Guía rápida: tipos de pregunta, codificación, preguntas filtro y descarga de datos"
-author: "Nicolás Outerbridge"
+author: "Equipo de Ayudantes"
 date: today
 lang: es
 format:
@@ -107,7 +107,7 @@ Se hace en tres pasos:
 
 1. **Divide el formulario en secciones** con el botón *Añadir sección* de la barra de herramientas. La pregunta filtro debe quedar al final de su sección.
 2. En la pregunta filtro, abre ⋮ y activa **Ir a la sección según la respuesta**.
-3. **Elige el destino de cada opción**: Sí → sección 2, No → sección 3.
+3. **Elige el destino de cada opción**: Sí → sección 2, No → salta a la sección 3.
 
 :::: {.columns}
 ::: {.column width="48%"}
