@@ -76,7 +76,7 @@ Cada fila es una **variable ordinal distinta**: en la base descargada, cada íte
 En el menú ⋮ de cada pregunta está la opción **Ordenar las opciones aleatoriamente**. En preguntas **nominales con muchas opciones** ayuda a reducir el sesgo de que la gente elija las primeras. **Nunca** la uses en preguntas ordinales, porque se pierde el orden de la escala.
 :::
 
-## Codificar las preguntas
+## Codificar las preguntas (Opcional, recomendado)
 
 Codificar es asignar un número a cada respuesta. Se decide **antes** de aplicar la encuesta y se anota en un **libro de códigos**, porque Google Forms guarda el **texto** de la opción y no un número:
 
@@ -227,7 +227,7 @@ Así se ve la base descargada:
 Fíjate en tres cosas:
 
 - **Una fila por persona y una columna por pregunta.** La primera columna es la fecha y hora del envío.
-- **Las respuestas vienen como texto**, por eso necesitas el libro de códigos. Solo la escala lineal (P5) viene como número.
+- **Las respuestas vienen como texto**, por eso es ideal tener un libro de códigos. Solo la escala lineal (P5) viene como número.
 - **Las celdas vacías** pueden significar "no respondió" (P4, fila 2) o "no le correspondía por el filtro" (P7, filas 3 y 5).
 
 ## Después: limpiar la base
