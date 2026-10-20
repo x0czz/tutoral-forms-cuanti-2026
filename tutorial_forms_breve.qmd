@@ -16,7 +16,7 @@ format:
     lightbox: true
 ---
 
-[⏱ Lectura: 5 minutos]{.lectura}
+[⏱ Lectura: 7 minutos]{.lectura}
 
 Esta guía muestra cómo armar una encuesta en Google Forms que después se pueda analizar sin problemas. Todas las capturas vienen de un formulario de ejemplo, la *Encuesta de hábitos de estudio*. Haz clic en cualquier imagen para ampliarla.
 
@@ -56,6 +56,26 @@ El tipo de pregunta se elige en el menú desplegable de cada pregunta. La regla 
 Si preguntas la edad exacta (razón), después puedes agruparla en tramos (ordinal). Al revés no se puede.
 :::
 
+### Baterías de preguntas: la cuadrícula
+
+:::: {.columns}
+::: {.column width="50%"}
+Cuando varias afirmaciones comparten la misma escala, como "Muy en desacuerdo … Muy de acuerdo", usa **Cuadrícula de varias opciones**. Las **filas** (1) son los ítems y las **columnas** (2) son las categorías de respuesta.
+
+Cada fila es una **variable ordinal distinta**: en la base descargada, cada ítem aparece en su propia columna. Activa *Solicitar una respuesta en cada fila* si todos los ítems deben responderse.
+:::
+::: {.column width="4%"}
+:::
+::: {.column width="46%"}
+![Cuadrícula de varias opciones](img/27_cuadricula.png)
+:::
+::::
+
+::: {.callout-tip}
+## ¿Ordenar las opciones aleatoriamente?
+En el menú ⋮ de cada pregunta está la opción **Ordenar las opciones aleatoriamente**. En preguntas **nominales con muchas opciones** ayuda a reducir el sesgo de que la gente elija las primeras. **Nunca** la uses en preguntas ordinales, porque se pierde el orden de la escala.
+:::
+
 ## Codificar las preguntas
 
 Codificar es asignar un número a cada respuesta. Se decide **antes** de aplicar la encuesta y se anota en un **libro de códigos**, porque Google Forms guarda el **texto** de la opción y no un número:
@@ -69,7 +89,7 @@ Codificar es asignar un número a cada respuesta. Se decide **antes** de aplicar
 
 Tres reglas:
 
-- **El orden de las opciones es el orden de los códigos.** Escribe las opciones ordinales de menor a mayor y no actives "ordenar aleatoriamente".
+- **El orden de las opciones es el orden de los códigos.** Escribe las opciones ordinales de menor a mayor.
 - **Agrega "Otro"** para que las categorías cubran todos los casos.
 - **Casillas = una variable por opción** (0 = no marcó, 1 = marcó).
 
@@ -124,6 +144,70 @@ Se hace en tres pasos:
 ## Prueba todos los caminos
 Antes de difundir la encuesta, respóndela una vez con "Sí" y otra con "No" para comprobar que los saltos funcionan.
 :::
+
+### Un uso clave: el consentimiento informado
+
+:::: {.columns}
+::: {.column width="55%"}
+La misma lógica sirve para el **consentimiento informado**, un requisito ético habitual en encuestas universitarias:
+
+1. Pon en la **primera sección** el texto del consentimiento (objetivo del estudio, uso de los datos, carácter voluntario y anónimo).
+2. Agrega una pregunta obligatoria: **¿Aceptas participar en este estudio?** (Sí / No).
+3. Configura el salto: **Sí → Ir a la siguiente sección** y **No → Enviar formulario**.
+
+Así, quien no acepta termina la encuesta sin ver ninguna pregunta.
+:::
+::: {.column width="45%"}
+![La opción "Enviar formulario" termina la encuesta](img/12_destinos_seccion.png)
+:::
+::::
+
+## Antes de publicar
+
+### Revisa la configuración de respuestas
+
+:::: {.columns}
+::: {.column width="52%"}
+En la pestaña **Configuración → Respuestas** se decide cómo se recogen los datos:
+
+1. **Recopilar direcciones de correo electrónico.** Si la encuesta es **anónima**, déjalo en *No recoger*; si no, la base guardará el correo de cada persona.
+2. **Permitir modificar las respuestas.** Permite corregir una respuesta después de enviarla. Normalmente conviene dejarlo **desactivado**.
+3. **Limitar a 1 respuesta.** Evita que una persona responda dos veces, pero **obliga a iniciar sesión** con una cuenta de Google. Eso puede dejar fuera a parte de la muestra.
+:::
+::: {.column width="4%"}
+:::
+::: {.column width="44%"}
+![Configuración → Respuestas](img/24_config_respuestas.png)
+:::
+::::
+
+### Prueba la encuesta con la vista previa
+
+:::: {.columns}
+::: {.column width="55%"}
+En el menú ⋮ (arriba a la derecha) elige **Vista previa**. Ahí ves el formulario tal como lo verá quien responde. Úsala para recorrer todos los caminos de los filtros.
+
+Si envías respuestas de prueba, **bórralas antes de difundir la encuesta**: *Respuestas → ⋮ → Eliminar todas las respuestas*. Si no las borras, quedan mezcladas con los datos reales.
+:::
+::: {.column width="45%"}
+![Menú ⋮ → Vista previa](img/26_menu_vista_previa.png)
+:::
+::::
+
+Cuando todo esté listo, usa el botón **Publicar** y copia el **enlace de encuestado/a** para difundirlo.
+
+## Cerrar la encuesta
+
+:::: {.columns}
+::: {.column width="55%"}
+Cuando termine el trabajo de campo, haz clic en el ícono de publicación (el avión de papel) y desactiva **Se aceptan respuestas**. Quien abra el enlace verá un aviso de que el formulario ya no acepta respuestas.
+
+También puedes programarlo con **Definir fecha de cierre o límite de respuestas**. El formulario se cierra solo en una fecha determinada o al llegar a un número de respuestas, lo que sirve para controlar el tamaño de la muestra.
+:::
+::: {.column width="45%"}
+![Opciones de publicación: aceptar respuestas y fecha de cierre](img/25_aceptar_respuestas.png)
+:::
+::::
 
 ## Descargar la base de datos
 
